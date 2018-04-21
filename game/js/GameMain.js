@@ -32,12 +32,12 @@
         position: new THREE.Vector3(0, 10, 10)
     }).addTo(env_lights);
 
-    new WHS.AmbientLight({
-        light: {
-            intensity: 0.4
-        }
-    }).addTo(env_lights);
-    log(env_lights);
+    //new WHS.AmbientLight({
+    //    light: {
+    //        intensity: 0.4
+    //    }
+    //}).addTo(env_lights);
+    //log(env_lights);
 
     //create environment
     const env_objs = new WHS.Group();
@@ -84,25 +84,50 @@
     }).addTo(player);
     log(player);
 
-    let player_controller = function (event)
+    //touch controller
+    var prevTouchX = 0;
+
+    let on_touch_start = function (event)
     {
-        let moveX = event.movementX;
-        player.position.x += moveX / 10 * player_attribute.speed;
+    };
+
+    let on_touch_end = function (event)
+    {
+        prevTouchX = 0;
+    };
+
+    let on_touch_move = function (event)
+    {
+        let touchs = event.touches;
+        if (touchs.length == 0)
+            return;
+        let touch0 = touchs[0];
+        let curX = touch0.clientX;
+        if (curX == prevTouchX)
+            return;
+        if (prevTouchX != 0)
+        {
+            let moveX = (curX - prevTouchX) / 10 * player_attribute.speed;
+            //log(moveX);
+            player.position.x += moveX;
+        }
+        prevTouchX = curX;
     };
 
     function register()
     {
-        document.ontouchmove = player_controller;
-        document.onmousedown = () => {
-            document.onmousemove = player_controller;
-        };
+        document.addEventListener("touchstart",on_touch_start);
+        document.addEventListener("touchmove", on_touch_move);
+        document.addEventListener("touchend", on_touch_end);
     };
     register.call();
 
     //game loop
-    const loop = new WHS.Loop(() => {
-
+    const loop = new WHS.Loop(() =>
+    {
+        
     });
+    app.addLoop(loop);
     loop.start();
 
     //begin
