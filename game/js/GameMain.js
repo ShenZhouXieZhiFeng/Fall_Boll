@@ -19,18 +19,6 @@
     new WHS.ResizeModule()
 ]);
 
-const player = new WHS.Sphere({
-    geometry: {
-        radius: 5,
-        widthSegments: 32,
-        heightSegments: 32
-    },
-    material: new THREE.MeshPhongMaterial({
-        color: 0xF2F2F2
-    }),
-    position: new THREE.Vector3(0, 15, 0)
-}).addTo(app);
-
 new WHS.Plane({
     geometry: {
         width: 100,
@@ -57,6 +45,19 @@ new WHS.AmbientLight({
     }
 }).addTo(app);
 
+const player = new WHS.Sphere({
+    geometry: {
+        radius: 5,
+        widthSegments: 32,
+        heightSegments: 32
+    },
+    material: new THREE.MeshPhongMaterial({
+        color: 0xF2F2F2
+    }),
+    position: new THREE.Vector3(0, 15, 0)
+});
+//player.addTo(app);
+
 const box = new WHS.Box({ // Create sphere comonent.
     geometry: [9, 9, 9],
     position:new THREE.Vector3(0,5,0),
@@ -64,10 +65,16 @@ const box = new WHS.Box({ // Create sphere comonent.
         color: 0xF2F2F2
     })
 });
-box.addTo(app);
+//box.addTo(app);
+
+const group = new WHS.Group();
+group.add(player);
+group.add(box);
+group.addTo(app);
 
 new WHS.Loop(() => {
     box.rotation.y += 0.02;
+    //box.rotation.y += 0.02;
 }).start(app);
 
 app.start();
