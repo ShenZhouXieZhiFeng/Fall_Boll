@@ -73,8 +73,9 @@ group.add(box);
 group.addTo(app);
 
 new WHS.Loop(() => {
-    box.rotation.y += 0.02;
-    //box.rotation.y += 0.02;
+    group.rotation.y += 0.02;
 }).start(app);
+
+//log(group);
 
 app.start();
