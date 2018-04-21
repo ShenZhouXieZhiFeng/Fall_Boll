@@ -15,10 +15,34 @@
             }
         }
     }), { shadow: true },
-    new WHS.OrbitControlsModule(),
+    //new WHS.OrbitControlsModule(),
     new WHS.ResizeModule()
 ]);
 
+//create env_lights
+const env_lights = new WHS.Group();
+env_lights.addTo(app);
+new WHS.PointLight({
+    light: {
+        intensity: 0.5,
+        distance: 100
+    },
+    shadow: {
+        fov: 90
+    },
+    position: new THREE.Vector3(0, 10, 10)
+}).addTo(env_lights);
+
+new WHS.AmbientLight({
+    light: {
+        intensity: 0.4
+    }
+}).addTo(env_lights);
+log(env_lights);
+
+//create environment
+const env_objs = new WHS.Group();
+env_objs.addTo(app);
 new WHS.Plane({
     geometry: {
         width: 100,
@@ -26,26 +50,22 @@ new WHS.Plane({
     },
     material: new THREE.MeshPhongMaterial({ color: 0x447F8B }),
     rotation: {x:-Math.PI/2}
-}).addTo(app);
+}).addTo(env_objs);
 
-new WHS.PointLight({
-    light: {
-        intensity: 0.5,
-        distance:100
-    },
-    shadow: {
-        fov:90
-    },
-    position:new THREE.Vector3(0,10,10)
-}).addTo(app);
+const box = new WHS.Box({ 
+    geometry: [9, 9, 9],
+    position:new THREE.Vector3(0,5,0),
+    material: new THREE.MeshPhongMaterial({
+        color: 0xF2F2F2
+    })
+});
+box.addTo(env_objs);
+log(env_objs);
 
-new WHS.AmbientLight({
-    light: {
-        intensity: 0.4
-    }
-}).addTo(app);
-
-const player = new WHS.Sphere({
+//create player
+const player = new WHS.Group();
+player.addTo(app);
+new WHS.Sphere({
     geometry: {
         radius: 5,
         widthSegments: 32,
@@ -54,28 +74,21 @@ const player = new WHS.Sphere({
     material: new THREE.MeshPhongMaterial({
         color: 0xF2F2F2
     }),
-    position: new THREE.Vector3(0, 15, 0)
-});
-//player.addTo(app);
+    position: new THREE.Vector3(0, 0, 0)
+}).addTo(player);
+log(player);
 
-const box = new WHS.Box({ // Create sphere comonent.
-    geometry: [9, 9, 9],
-    position:new THREE.Vector3(0,5,0),
-    material: new THREE.MeshPhongMaterial({
-        color: 0xF2F2F2
-    })
-});
-//box.addTo(app);
+let player_controller = function () {
 
-const group = new WHS.Group();
-group.add(player);
-group.add(box);
-group.addTo(app);
+};
 
-new WHS.Loop(() => {
-    group.rotation.y += 0.02;
-}).start(app);
 
-//log(group);
+//game loop
+//new WHS.Loop(() => {
+//    env_objs.rotation.y += 0.05;
+//    player_controller();
+//}).start(app);
 
+//begin
 app.start();
+
