@@ -1,137 +1,98 @@
-﻿var main = ()=>{
-    const app = new WHS.App([
-        new WHS.ElementModule({
-            container: document.getElementById("app")
-        }),
-        new WHS.SceneModule(),
-        new WHS.DefineModule('camera', new WHS.PerspectiveCamera()),
-        new WHS.RenderingModule({
-            bgColor: 0x1E1E1E,
-            renderer: {
-                antialias: true,
-                shadowmap: {
-                    type: THREE.PCFSoftShadowMap
-                }
-            }
-        }), { shadow: true },
-        //new WHS.OrbitControlsModule(),
-        new WHS.ResizeModule()
-    ]);
+﻿var width, height;
+var viewAngle = 50,
+	near = 0.1,
+	far = 10000;
+var aspect;
 
-    //create env_lights
-    const env_lights = new WHS.Group();
-    env_lights.addTo(app);
-    new WHS.PointLight({
-        light: {
-            intensity: 0.5,
-            distance: 100
-        },
-        shadow: {
-            fov: 90
-        },
-        position: new THREE.Vector3(0, 10, 10)
-    }).addTo(env_lights);
+var renderer, camera, scene, stats;
+var sceneObject, intersected;
 
-    //new WHS.AmbientLight({
-    //    light: {
-    //        intensity: 0.4
-    //    }
-    //}).addTo(env_lights);
-    //log(env_lights);
+$(function () {
 
-    //create environment
-    const env_objs = new WHS.Group();
-    env_objs.addTo(app);
-    //new WHS.Plane({
-    //    geometry: {
-    //        width: 100,
-    //        height: 100
-    //    },
-    //    material: new THREE.MeshPhongMaterial({ color: 0x447F8B }),
-    //    rotation: { x: -Math.PI / 2 }
-    //}).addTo(env_objs);
+    if (!Detector.webgl) Detector.addGetWebGLMessage();
 
-    const box = new WHS.Box({
-        geometry: [9, 9, 9],
-        position: new THREE.Vector3(0, 10, 0),
-        material: new THREE.MeshPhongMaterial({
-            color: 0xF2F2F2
-        })
+    var container = $("#container3d");
+    startScene(container);
+});
+
+function startScene(container) {
+
+    width = window.innerWidth;
+    height = window.innerHeight;
+    aspect = width / height;
+
+    scene = new THREE.Scene();
+
+    // Load models
+    var loader = new THREE.ObjectLoader();
+
+    loader.load("../res/scene.json", function (object) {
+        log(object);
+        sceneObject = object;
+        sceneObject.scale.set(13, 13, 13);
+        sceneObject.position.set(0, 0, 0);
+        scene.add(sceneObject);
+
+        var axes = new THREE.AxesHelper(700);
+        scene.add(axes);
+
+        addLights();
+        addCamera();
+        update();
     });
-    box.addTo(env_objs);
-    log(env_objs);
 
-    //create player
-    const player = new WHS.Group();
-    var player_attribute = {
-        speed: 1
-    };
-    const camera = app.manager.get("camera");
-    player.addTo(app);
-    player.add(camera);
-    camera.quaternion.set(-0.15, 0, 0, 1);
-    camera.position.set(0, 15, 40);
-    new WHS.Sphere({
-        geometry: {
-            radius: 5,
-            widthSegments: 32,
-            heightSegments: 32
-        },
-        material: new THREE.MeshPhongMaterial({
-            color: 0x3988D6
-        }),
-        position: new THREE.Vector3(0, 0, 0)
-    }).addTo(player);
-    log(player);
+    function addLights() {
+        // Lights
+        var ambient = new THREE.AmbientLight(0x404040);
+        scene.add(ambient);
 
-    //touch controller
-    var prevTouchX = 0;
+        var light1 = new THREE.PointLight(0xffffff);
+        light1.position.set(0, 2000, 750);
+        light1.intensity = 0.45;
+        scene.add(light1);
 
-    let on_touch_start = function (event)
-    {
-    };
+        var light2 = new THREE.PointLight(0xFFFFFF);
+        light2.position.set(5, 100, -200);
+        light2.intensity = 0.4;
+        scene.add(light2);
+    }
 
-    let on_touch_end = function (event)
-    {
-        prevTouchX = 0;
-    };
+    function addCamera() {
+        // Camera
+        camera = new THREE.PerspectiveCamera(viewAngle, aspect, near, far);
+        //camera.position = new THREE.Vector3(177, 352, 287);
+        //camera.rotation = new THREE.Vector3(-50, 32, 24);
+        camera.position.x = 0;
+        camera.position.y = 5000;
+        camera.position.z = 0;
+        camera.rotation.x = -90;
+        log(camera);
+    }
 
-    let on_touch_move = function (event)
-    {
-        let touchs = event.touches;
-        if (touchs.length == 0)
-            return;
-        let touch0 = touchs[0];
-        let curX = touch0.clientX;
-        if (curX == prevTouchX)
-            return;
-        if (prevTouchX != 0)
-        {
-            let moveX = (curX - prevTouchX) / 10 * player_attribute.speed;
-            //log(moveX);
-            player.position.x += moveX;
-        }
-        prevTouchX = curX;
-    };
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize(width, height);
+    container.append(renderer.domElement);
 
-    function register()
-    {
-        document.addEventListener("touchstart",on_touch_start);
-        document.addEventListener("touchmove", on_touch_move);
-        document.addEventListener("touchend", on_touch_end);
-    };
-    register.call();
+    stats = new Stats();
+    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.right = '10px';
+    stats.domElement.style.top = '10px';
+    $('body').append(stats.domElement);
 
-    //game loop
-    const loop = new WHS.Loop(() =>
-    {
-        
-    });
-    app.addLoop(loop);
-    loop.start();
+    $(window).on("resize", onWindowResize);
+}
 
-    //begin
-    app.start();
-};
-main.call();
+function update() {
+    requestAnimationFrame(update);
+    stats.update();
+    renderer.render(scene, camera);
+}
 
+function onWindowResize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+}
