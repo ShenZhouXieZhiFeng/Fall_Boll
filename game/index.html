@@ -6,9 +6,19 @@
         <link rel="stylesheet" href="css/style.css">
 	</head>
 	<body>
-        <div id="ui">
+        <div id="top" class="top">
+            <div id="high_score" class="score">
+                HIGH SCORE:0
+            </div>
+            <div id="last_score" class="score">
+                LAST SCORE:0
+            </div>
+            <div id="current_score" class="score">
+                SCORE:0
+            </div>
+        </div>
+        <div id="button_panel" class="bottom">
             <button_a onclick="on_button_click(button_type.game_begin);">begin</button_a>
-            <button_a onclick="on_button_click(button_type.game_end);">end</button_a>
         </div>
 		<script src="libs/threejs/Detector.js"></script>
         <script src="libs/threejs/stats.min.js"></script>

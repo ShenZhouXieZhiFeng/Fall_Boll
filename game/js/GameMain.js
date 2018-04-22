@@ -16,13 +16,18 @@ var planes = new THREE.Group();//平板组
 var plane = new THREE.Object3D();//单个平板引用
 var env_objs = new THREE.Object3D();//环境物品
 
+var config_attribute = 
+{
+    game_end_timeout:2000 //多久没有落到板上则视为游戏结束
+}
+
 var init_attribute =
 {
-    camera_position_x: 0.178,
-    camera_position_y: 12.589,
-    camera_position_z: 13.704,
+    camera_position_x: 0,
+    camera_position_y: 18.59,
+    camera_position_z: 0,
 
-    camera_rotation_x: -0.743,
+    camera_rotation_x: -1.52,
     camera_rotation_y: 0,
     camera_rotation_z: 0,
     
@@ -96,11 +101,6 @@ function startScene(container) {
         sceneObject.add(player);
         var player_sphere = scene.getObjectByName("player_sphere");
         player.add(player_sphere);
-
-        //var controls = new THREE.OrbitControls(camera, renderer.domElement);
-        //controls.maxPolarAngle = Math.PI * 0.5;
-        //controls.minDistance = 1;
-        //controls.maxDistance = 500;
     }
 
     function start_end()
@@ -123,18 +123,34 @@ function startScene(container) {
 function render_update() {
     requestAnimationFrame(render_update);
     stats.update();
+    if (!game_state.begin)
+        return;
     $(game_update());
     renderer.render(scene, camera);
 }
 
 //*********************************GAME LOGIC***********************************************//
+var button_panel;
+var current_score;
+var last_score;
+var high_score;
+
 function on_load_scene_end() {
+    $(get_ui_panel);
     $(create_scene);
-    $(register);
     $(set_item_init);
+    $(register);
     log(scene);
     log(camera);
     log(player);
+}
+
+function get_ui_panel()
+{
+    button_panel = document.getElementById("button_panel");
+    current_score = document.getElementById("current_score");
+    last_score = document.getElementById("last_score");
+    high_score = document.getElementById("high_score");
 }
 
 //通过clone制作场景
@@ -158,6 +174,24 @@ function create_scene()
 //设置物体初始属性
 function set_item_init()
 {
+    set_obj_pars();
+
+    button_panel.hidden = false;
+    player_attribute.last_socre = player_attribute.score;
+    $(set_score);
+    last_score.innerHTML = "LAST SCORE:" + player_attribute.last_socre;
+    player_attribute.high_score = Math.max(player_attribute.high_score, player_attribute.last_socre);
+    high_score.innerHTML = "HIGH SCORE:" + player_attribute.high_score;
+}
+
+function set_obj_pars()
+{
+    //调整相机位置时打开
+    //var controls = new THREE.OrbitControls(camera, renderer.domElement);
+    //controls.maxPolarAngle = Math.PI * 0.5;
+    //controls.minDistance = 1;
+    //controls.maxDistance = 500;
+
     camera.position.x = init_attribute.camera_position_x;
     camera.position.y = init_attribute.camera_position_y;
     camera.position.z = init_attribute.camera_position_z;
@@ -176,7 +210,10 @@ var player_attribute =
     forward_speed: 0.1,//前进的速度
     cur_add_speed: 0,//当前加速度
     fall_speed: 1,   //掉落的速度
-    drag_speed: 0.5  //拖动的参考速度
+    drag_speed: 0.5,  //拖动的参考速度
+    high_score: 0,  //最高分数
+    last_socre: 0,  //上次分数
+    score: 0 //分数
 }
 
 var game_state =
@@ -260,20 +297,19 @@ var on_button_click = function (type)
 }
 function game_begin()
 {
+    log("game begin");
     game_state.begin = true;
+    button_panel.hidden = true;
 }
 function game_end()
 {
+    log("game end");
     game_state.begin = false;
     $(set_item_init);
 }
 
 //trigger碰撞
-var direction = new THREE.Vector3();
-direction.x = 0;
-direction.y = -1;
-direction.z = 0;
-direction.normalize();
+var direction = new THREE.Vector3(0,-1,0);
 var raycaster = new THREE.Raycaster();
 function trigger_controller()
 {
@@ -284,15 +320,38 @@ function trigger_controller()
         if (intersection.distance < 1) {
             if (intersection.object.name.indexOf("plane") >= 0) {
                 game_state.fall_able = false;
+                window.clearTimeout(check_handler);
+                check_handler = null;
             }
         }
         else {
             game_state.fall_able = true;
+            if (check_handler == null)
+            {
+                $(check_end);
+            }
         }
     }
     else {
         game_state.fall_able = true;
+        if (check_handler == null) {
+            $(check_end);
+        }
     }
+}
+//游戏结束检查
+var check_handler = null;
+function check_end()
+{
+    check_handler = window.setTimeout(() => {
+        game_end()
+    }, config_attribute.game_end_timeout);
+}
+
+function set_score()
+{
+    player_attribute.score = init_attribute.player_height - player.position.y;
+    current_score.innerHTML = "SCORE:" + player_attribute.score;
 }
 
 var move_speed = 0;
@@ -305,6 +364,7 @@ function game_update()
     trigger_controller();
     if (game_state.fall_able) {
         player.position.y -= player_attribute.fall_speed;
+        set_score();
     }
     if (game_state.touched) {
         touch_controller();
