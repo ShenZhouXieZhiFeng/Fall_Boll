@@ -17,21 +17,19 @@ var planes = new THREE.Group();//平板组
 var plane = new THREE.Object3D();//单个平板引用
 var env_objs = new THREE.Object3D();//环境物品
 
-var config_attribute = 
+//*********************************GAME LOGIC***********************************************//
+//虚拟重力情况，以下配置皆为相对值
+var config_attribute =
 {
-    game_end_timeout:5000 //多久没有落到板上则视为游戏结束
+    init_add_speed_strenth: 1,  //初始加速度强度
+    init_add_speed_time: 2000,   //初始加速度持续时间
+    speed_reduce_strenth:0.1,
+    fall_speed: 1,   //掉落的速度
+    game_end_timeout: 5000 //多久没有落到板上则视为游戏结束
 }
 
 var init_attribute =
 {
-    //camera_position_x: 0,
-    //camera_position_y: 18.59,
-    //camera_position_z: 0,
-
-    //camera_rotation_x: -1.52,
-    //camera_rotation_y: 0,
-    //camera_rotation_z: 0,
-
     camera_position_x: 0.043,
     camera_position_y: 32.94,
     camera_position_z: 15.12,
@@ -39,11 +37,10 @@ var init_attribute =
     camera_rotation_x: -1.01,
     camera_rotation_y: 0,
     camera_rotation_z: 0,
-    
-    player_height:10,
+
+    player_height: 10,
 }
 
-//*********************************GAME LOGIC***********************************************//
 var button_panel;
 var current_score;
 var last_score;
@@ -61,10 +58,12 @@ function on_load_scene_end() {
 
 function get_ui_panel()
 {
-    button_panel = document.getElementById("button_panel");
-    current_score = document.getElementById("current_score");
-    last_score = document.getElementById("last_score");
-    high_score = document.getElementById("high_score");
+    //button_panel = document.getElementById("button_panel");
+    //current_score = document.getElementById("current_score");
+    //last_score = document.getElementById("last_score");
+    //high_score = document.getElementById("high_score");
+    button_panel = document.createElement("button_panel");
+
 }
 
 //通过clone制作场景
@@ -122,9 +121,9 @@ function set_obj_pars()
 var player_attribute =
 {
     forward_speed: 0.5,//前进的速度
-    rotate_speed: 1,//旋转速度
     cur_add_speed: 0,//当前加速度
-    fall_speed: 1,   //掉落的速度
+    rotate_speed: 1,//旋转速度
+    cur_add_rotate:0,//当前提升的转速
     drag_speed: 0.5,  //拖动的参考速度
     high_score: 0,  //最高分数
     last_socre: 0,  //上次分数
@@ -270,7 +269,7 @@ function move_rotate()
 {
     move_speed = player_attribute.forward_speed + player_attribute.cur_add_speed;
     player.position.z -= move_speed;
-    player_sphere.rotation.x -= player_attribute.rotate_speed/10;
+    player_sphere.rotation.x -= (player_attribute.rotate_speed + player_attribute.cur_add_rotate) / 10;
 }
 
 var speed_up_handler = null;
@@ -285,13 +284,19 @@ function speed_up(val, time)
     //向前加速度
     player_attribute.cur_add_speed += val;
     //转速提升
-    player_attribute.rotate_speed += val/10;
+    player_attribute.cur_add_rotate += val / 10;
     speed_up_handler = window.setTimeout(() => { 
         //在500豪秒内加速度减到0
-        var position = { cur: player_attribute.cur_add_speed };
-        var target = { cur:0 };
-        var speed_up_end_tween = new TWEEN.Tween(position).to(target, 500);
-        speed_up_end_tween.onUpdate(() => { player_attribute.cur_add_speed = position.cur });
+        var init = {
+            speed: player_attribute.cur_add_speed,
+            rotate:player_attribute.cur_add_rotate
+        };
+        var target = {
+            speed: 0,
+            rotate:0
+        };
+        var speed_up_end_tween = new TWEEN.Tween(init).to(target, 500);
+        speed_up_end_tween.onUpdate(() => { player_attribute.cur_add_speed = init.speed });
         speed_up_end_tween.start();
     }, time)
 }
@@ -304,7 +309,7 @@ function game_update()
     move_rotate();
     trigger_controller();
     if (game_state.fall_able) {
-        player.position.y -= player_attribute.fall_speed;
+        player.position.y -= config_attribute.fall_speed;
         set_score();
     }
     if (game_state.touched) {
