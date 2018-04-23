@@ -13,8 +13,9 @@ export default class DataBus {
     }
 
     reset() {
-        this.frame      = 0
-        this.score      = 99999
-        this.gameOver   = false
+        this.frame      = 0;
+        this.score      = 0;
+        this.gameOver   = false;
+        this.fall_able  = true; //是否可以下落，模拟碰撞到平板上
     }
 }

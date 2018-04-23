@@ -140,10 +140,17 @@ export default class Main {
         this.scene.add(this.light);  
     }
     loop() {
+        
+        //清除2d界面
         this.canvas_2d_ctx.clearRect(0, 0, this.canvas_2d.width, this.canvas_2d.height);
+
+        //游戏逻辑刷新
         this.game_controller.game_update();
+        //渲染3d场景
         this.renderer.render(this.scene, this.camera);
+        //将3d场景绘制到2d上
         this.canvas_2d_ctx.drawImage(this.canvas_3d,0,0);
+
         window.requestAnimationFrame(this.loop.bind(this), this.canvas_2d);
     }
 }

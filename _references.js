@@ -12,6 +12,7 @@
 /// <reference path="js/libs/Tween.js" />
 /// <reference path="js/libs/weapp-adapter.js" />
 /// <reference path="js/main.js" />
+/// <reference path="js/player.js" />
 /// <reference path="js/runtime/background.js" />
 /// <reference path="js/runtime/gameinfo.js" />
 /// <reference path="js/runtime/music.js" />
