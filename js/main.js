@@ -4,8 +4,6 @@ import GameController from './GameController'
 
 const scene_url = "http://192.168.1.62/res/scene.json"
 
-let ctx  = canvas.getContext('webgl')
-
 let width,height;
 let viewAngle = 75,
     near = 0.1,
@@ -35,8 +33,17 @@ export default class Main {
     {
         this.scene = new THREE.Scene();
 
+        //获取2d canvas
+        this.canvas_2d = canvas;
+        this.canvas_2d_ctx = canvas.getContext('2d')
+
+        //获取3d canvas
+        this.canvas_3d = wx.createCanvas();
+        this.canvas_3d_ctx = this.canvas_3d.getContext('webgl')
+        console.log(this.canvas_3d_ctx)
+
         // 同时指定canvas为小游戏暴露出来的canvas
-        this.renderer  = new THREE.WebGLRenderer({ context: ctx })
+        this.renderer  = new THREE.WebGLRenderer({ context: this.canvas_3d_ctx })
 
         //this.camera = new THREE.PerspectiveCamera(
         //    camera_config.viewAngle, 
@@ -74,7 +81,7 @@ export default class Main {
         this.create_game_scene();
         this.init_camera();
         this.init_lights();
-        this.game_controller = new GameController(this,ctx);
+        this.game_controller = new GameController(this);
         window.requestAnimationFrame(this.loop.bind(this), canvas);
     }
     //获取物体引用
@@ -133,8 +140,10 @@ export default class Main {
         this.scene.add(this.light);  
     }
     loop() {
+        this.canvas_2d_ctx.clearRect(0, 0, this.canvas_2d.width, this.canvas_2d.height);
         this.game_controller.game_update();
         this.renderer.render(this.scene, this.camera);
-        window.requestAnimationFrame(this.loop.bind(this), canvas);
+        this.canvas_2d_ctx.drawImage(this.canvas_3d,0,0);
+        window.requestAnimationFrame(this.loop.bind(this), this.canvas_2d);
     }
 }
