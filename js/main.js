@@ -2,7 +2,7 @@ import * as OrbitControls from 'libs/threejs/OrbitControls'
 import * as THREE from 'libs/threejs/three.min'
 import GameController from './GameController'
 
-const scene_url = "http://192.168.1.62/res/scene.json"
+const scene_url = "http://localhost/res/scene.json"
 
 let width,height;
 let viewAngle = 75,
@@ -34,7 +34,7 @@ export default class Main {
     init_objs()
     {
         this.scene = new THREE.Scene();
-        //this.scene.background = new THREE.Color();
+        this.scene.background = new THREE.Color(0,0,0);
 
         //获取2d canvas
         this.canvas_2d = canvas;

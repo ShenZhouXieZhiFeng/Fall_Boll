@@ -32,6 +32,24 @@ export default class GameInfo {
 
     }
 
+    showSpeed(speed,rotation)
+    {
+        this.ctx.fillStyle = "#C60000"
+        this.ctx.font      = "20px Arial"
+
+        this.ctx.fillText(
+            "speed:" + speed,
+            10,
+           30
+        )
+
+        this.ctx.fillText(
+            "rotate:" + rotation,
+            10,
+            50
+        )
+    }
+
     renderGameScore(ctx, score) {
         ctx.fillStyle = "#666666"
         ctx.font      = "20px Arial"
