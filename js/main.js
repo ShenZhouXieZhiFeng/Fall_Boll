@@ -16,13 +16,15 @@ let camera_rotation_x = -1.01
 let camera_rotation_y = 0
 let camera_rotation_z = 0
 
+let play_init_height = 10
+
 /**
  * 游戏主函数
  */
 export default class Main {
 
     constructor() {
-
+        wx.create
         width = window.innerWidth;
         height = window.innerHeight;
         
@@ -32,6 +34,7 @@ export default class Main {
     init_objs()
     {
         this.scene = new THREE.Scene();
+        //this.scene.background = new THREE.Color();
 
         //获取2d canvas
         this.canvas_2d = canvas;
@@ -40,7 +43,7 @@ export default class Main {
         //获取3d canvas
         this.canvas_3d = wx.createCanvas();
         this.canvas_3d_ctx = this.canvas_3d.getContext('webgl')
-        console.log(this.canvas_3d_ctx)
+        //console.log(this.canvas_3d_ctx)
 
         // 同时指定canvas为小游戏暴露出来的canvas
         this.renderer  = new THREE.WebGLRenderer({ context: this.canvas_3d_ctx })
@@ -81,6 +84,7 @@ export default class Main {
         this.create_game_scene();
         this.init_camera();
         this.init_lights();
+        this.init_player();
         this.game_controller = new GameController(this);
         window.requestAnimationFrame(this.loop.bind(this), canvas);
     }
@@ -139,17 +143,24 @@ export default class Main {
         this.light = new THREE.AmbientLight(0xffffff);
         this.scene.add(this.light);  
     }
+    init_player()
+    {
+        this.player.position.x = 0;
+        this.player.position.y = play_init_height;
+        this.player.position.z = 0;
+    }
     loop() {
         
         //清除2d界面
         this.canvas_2d_ctx.clearRect(0, 0, this.canvas_2d.width, this.canvas_2d.height);
-
-        //游戏逻辑刷新
-        this.game_controller.game_update();
+        
         //渲染3d场景
         this.renderer.render(this.scene, this.camera);
         //将3d场景绘制到2d上
         this.canvas_2d_ctx.drawImage(this.canvas_3d,0,0);
+
+        //游戏逻辑刷新
+        this.game_controller.game_update();
 
         window.requestAnimationFrame(this.loop.bind(this), this.canvas_2d);
     }
